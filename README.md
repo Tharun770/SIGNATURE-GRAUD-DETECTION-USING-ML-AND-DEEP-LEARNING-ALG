@@ -29,27 +29,6 @@ This project aims to detect fraudulent signatures using **Deep Learning (Neural 
 
 ---
 
-## 📁 Project Structure
-
-```
-
-signature-fraud-detection/
-├── data/
-│   ├── real/                # Genuine signatures
-│   └── forged/              # Forged signatures
-├── static/
-│   └── Uploads/             # Temporary upload storage
-├── templates/
-│   ├── index.html           # Upload form page
-│   └── result.html          # Prediction result page
-├── Features/
-│   ├── Training/            # Training CSVs
-│   └── Testing/             # Testing CSVs
-├── TestFeatures/            # Temporary CSV for live tests
-├── requirements.txt         # Dependencies
-├── signature\_fraud\_detection.py  # Main script
-└── README.md                # Project documentation
-
 ````
 
 ---
