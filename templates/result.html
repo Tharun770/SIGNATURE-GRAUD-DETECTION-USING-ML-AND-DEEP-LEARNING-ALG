@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction Result</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #ff9a9e, #fad0c4, #a1c4fd, #c2e9fb);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background 0.5s ease;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 800px;
+            text-align: center;
+            transition: transform 0.3s ease, background 0.5s ease;
+        }
+
+        .container:hover {
+            transform: scale(1.03);
+        }
+
+        h1 {
+            color: #ff6f61;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+            animation: bounceIn 1s ease;
+        }
+
+        #result {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+            transition: transform 0.3s ease, background 0.3s ease;
+        }
+
+        #result:hover {
+            transform: scale(1.02);
+        }
+
+        .result-genuine {
+            background: linear-gradient(45deg, #2ecc71, #48bb78);
+            color: white;
+        }
+
+        .result-forged {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        button, a {
+            padding: 12px 30px;
+            margin: 5px;
+            border: none;
+            border-radius: 25px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        #downloadBtn {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+        }
+
+        #backBtn {
+            background: linear-gradient(45deg, #95a5a6, #7f8c8d);
+        }
+
+        #darkModeBtn {
+            background: linear-gradient(45deg, #95a5a6, #7f8c8d);
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10;
+        }
+
+        button:hover, a:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        body.dark-mode {
+            background: linear-gradient(135deg, #1e3c72, #2a5298, #3d7eaa);
+        }
+
+        body.dark-mode .container {
+            background: rgba(30, 60, 114, 0.9);
+            color: #e5e7eb;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            60% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <button id="darkModeBtn" onclick="toggleDarkMode()">Toggle Dark Mode</button>
+    <div class="container">
+        <h1>Prediction Result</h1>
+        
+        {% if error %}
+            <div id="result" class="result-forged">{{ error }}</div>
+        {% else %}
+            <div id="result" class="{% if result == 'Genuine' %}result-genuine{% else %}result-forged{% endif %}">
+                User {{ user_id }}: The signature is {{ result }} 
+                (Forged: {{ forged_prob }}, Genuine: {{ genuine_prob }})
+            </div>
+            <button id="downloadBtn" onclick="downloadResult('{{ user_id }}', '{{ result }}', '{{ forged_prob }}', '{{ genuine_prob }}')">Download Report</button>
+        {% endif %}
+        
+        <a id="backBtn" href="/">Back to Home</a>
+    </div>
+
+    <script>
+        // Dark mode toggle
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+        }
+
+        // Download result as a professional PDF
+        function downloadResult(userId, result, forgedProb, genuineProb) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Colors
+            const headerColor = result === 'Genuine' ? [46, 204, 113] : [231, 76, 60]; // #2ecc71 or #e74c3c
+            const textColor = [44, 62, 80]; // #2c3e50
+            const accentColor = [52, 152, 219]; // #3498db
+
+            // Header
+            doc.setFillColor(...headerColor);
+            doc.rect(0, 0, 210, 40, 'F');
+            doc.setFontSize(20);
+            doc.setTextColor(255, 255, 255);
+            doc.text("Signature Verification Report", 105, 20, { align: "center" });
+
+            // Subheader
+            doc.setFontSize(12);
+            doc.setTextColor(...textColor);
+            doc.text("Generated by Signature Detection System", 105, 30, { align: "center" });
+
+            // Content
+            doc.setFontSize(14);
+            doc.setTextColor(...textColor);
+            doc.text("Analysis Details", 20, 50);
+
+            // Table-like structure
+            doc.setFillColor(240, 240, 240);
+            doc.rect(20, 60, 170, 60, 'F');
+            
+            doc.setFontSize(12);
+            doc.text(`User ID: ${userId}`, 25, 70);
+            doc.text(`Result: ${result} (Forged: ${forgedProb}, Genuine: ${genuineProb})`, 25, 85);
+            doc.text(`Date: ${new Date().toLocaleString()}`, 25, 100);
+
+            // Result Highlight
+            doc.setFillColor(...headerColor);
+            doc.rect(25, 105, 160, 10, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.text(result, 105, 112, { align: "center" });
+
+            // Footer
+            doc.setFillColor(...accentColor);
+            doc.rect(0, 270, 210, 30, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(10);
+            doc.text("BTK - Signature Forgery Detection | Confidential Report", 105, 285, { align: "center" });
+
+            // Save the PDF
+            doc.save(`Signature_Report_${userId}.pdf`);
+        }
+    </script>
+</body>
+</html>
